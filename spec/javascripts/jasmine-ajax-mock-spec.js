@@ -33,13 +33,13 @@ describe("jasmine.Ajax.mock", function() {
 
     describe("when a request was made to the expected matcher", function() {
       it("should be truthy", function() {
-        expect(jasmine.Ajax.getMock("GET", requestUrl)).toHaveBeenRequested();
+        expect(jasmine.Ajax.getRequest("GET", requestUrl)).toHaveBeenRequested();
       });
     });
 
     describe("when a request was not made to the expected matcher", function() {
       it("should be falsy", function() {
-        expect(jasmine.Ajax.getMock("GET", otherRequestUrl)).not.toHaveBeenRequested();
+        expect(jasmine.Ajax.getRequest("GET", otherRequestUrl)).not.toHaveBeenRequested();
       });
     });
   });
@@ -202,22 +202,18 @@ describe("jasmine.Ajax.mock", function() {
     });
   });
 
-  describe("#getMock", function() {
-    describe("when the given action and url have been stubbed", function() {
-      beforeEach(function() {
-        jasmine.Ajax.stubRequest("GET", requestUrl).andReturn(JSON.stringify({received_response: true}));
-      });
-
-      it("should return the mocked request object", function() {
-        var mock = jasmine.Ajax.getMock("GET", requestUrl);
-        expect(mock).toBeDefined();
+  describe("#getRequest", function() {
+    describe("when a request exists", function() {
+      it("should return the request", function() {
+        expect(jasmine.Ajax.getRequest("GET", requestUrl).request).toBeDefined();
+        expect(jasmine.Ajax.getRequest("GET", requestUrl).requested).toBeTruthy();
       });
     });
 
-    describe("when the given action and url have not been stubbed", function() {
-      it("should return undefined", function() {
-        var mock = jasmine.Ajax.getMock("GET", otherRequestUrl);
-        expect(mock).toBeUndefined();
+    describe("when a request does not exist", function() {
+      it("should return a an object with request as undefined", function() {
+        expect(jasmine.Ajax.getRequest("GET", requestUrl + "/non-existant").request).toBeUndefined();
+        expect(jasmine.Ajax.getRequest("GET", requestUrl + "/non-existant").requested).toBeFalsy();
       });
     });
   });

@@ -44,13 +44,52 @@ describe("jasmine.Ajax.mock", function() {
     });
   });
 
-  describe("stubRequest", function() {
+  describe("#stubRequest", function() {
     describe("when given a action and URL", function() {
+      describe("when the URL contains query params", function() {
+        beforeEach(function() {
+          clearAjaxRequests();
+          jQuery.ajax({
+            url: requestUrl + "?foo=bar&baz=roa",
+            type: "GET",
+            success: success,
+            complete: complete,
+            error: error
+          });
+        });
+
+        it("should match any order of the query params", function() {
+          jasmine.Ajax.stubRequest("GET", requestUrl + "?baz=roa&foo=bar").andReturn({status: 200, body: {received_response: true}});
+          expect(success).toHaveBeenCalled();
+          expect(success.mostRecentCall.args[0]).toEqual({received_response: true});
+        });
+
+        it("should not match if a query param is missing", function() {
+          expect(function() {
+            jasmine.Ajax.stubRequest("GET", requestUrl + "?foo=bar").andReturn({status: 200, body: {received_response: true}});
+          }).toThrow();
+        });
+
+        it("should not match if there are more query params expected than requested", function() {
+          expect(function() {
+            jasmine.Ajax.stubRequest("GET", requestUrl + "?baz=roa&foo=bar&bax=nan").andReturn({status: 200, body: {received_response: true}});
+          }).toThrow();
+        });
+      });
+
       describe("when given a andReturn object", function() {
         it("should set the request's response to the andReturn object", function() {
           jasmine.Ajax.stubRequest("GET", requestUrl).andReturn({status: 200, body: {received_response: true}});
           expect(success).toHaveBeenCalled();
           expect(success.mostRecentCall.args[0]).toEqual({received_response: true});
+        });
+
+        describe("when the request is not matched", function() {
+          it("should throw a request not found error", function() {
+            expect(function() {
+              jasmine.Ajax.stubRequest("GET", requestUrl + "/not_here").andReturn({status: 200, body: {received_response: true}});
+            }).toThrow();
+          });
         });
 
         describe("when given an object", function() {
@@ -94,7 +133,6 @@ describe("jasmine.Ajax.mock", function() {
             expect(success.mostRecentCall.args[2].status).toEqual(200);
           });
         });
-
       });
 
       describe("when andWait is called", function() {
@@ -106,6 +144,15 @@ describe("jasmine.Ajax.mock", function() {
 
         it("should not respond to the request immediately", function() {
           expect(success).not.toHaveBeenCalled();
+        });
+
+        describe("when the request is not matched", function() {
+          it("should throw a request not found error", function() {
+            var stub = jasmine.Ajax.stubRequest("GET", requestUrl + "/not_here");
+            expect(function(){
+              stub.respond();
+            }).toThrow();
+          });
         });
 
         describe("when no return data is given", function() {
@@ -155,7 +202,7 @@ describe("jasmine.Ajax.mock", function() {
     });
   });
 
-  describe("getMock", function() {
+  describe("#getMock", function() {
     describe("when the given action and url have been stubbed", function() {
       beforeEach(function() {
         jasmine.Ajax.stubRequest("GET", requestUrl).andReturn(JSON.stringify({received_response: true}));

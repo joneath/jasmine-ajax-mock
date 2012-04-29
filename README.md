@@ -17,7 +17,7 @@ A stub object has two methods, `andReturn` and `andWait`.
 
     jasmine.Ajax.stubRequest("GET", "http://example.com").andWait();
 
-######Stub methods
+####Stub methods
 #####andReturn(obj)
 Immediately returns the AJAX response with the passed Object or JSON string (it's parsed into JSON internally).
 
